@@ -4,8 +4,12 @@ package com.kwg.springframework.beans.factory.support;/**
  * @Description:
  */
 
+import cn.hutool.core.bean.BeanUtil;
 import com.kwg.springframework.beans.BeansException;
+import com.kwg.springframework.beans.PropertyValue;
+import com.kwg.springframework.beans.PropertyValues;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
+import com.kwg.springframework.beans.factory.config.BeanReference;
 
 import java.lang.reflect.Constructor;
 
@@ -27,10 +31,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
     @Override
     protected Object createBean(String beanName, BeanDefinition beanDefinition,Object[] args) throws BeansException {
-        Object bean ;
+        Object bean=null ;
         try {
              bean = crateBeanInstance(beanName,beanDefinition,args);
-
+             //bean创建好后，给bean填充属性。
+            applyPropertyValues(beanName,bean,beanDefinition);
         } catch (Exception e) {
             throw new  BeansException("Failed to instance of bean named "+beanName,e);
         }
@@ -56,6 +61,38 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             }
         }
         return getInstantiationStrategy().instantiate(beanDefinition,beanName,constructor,args);
+    }
+
+    /**
+     * bean 的属性填充，
+     *   属性在设置的时候，被设置成BeanReference类型
+     *
+     * @param beanName 自己的名字
+     * @param bean ：bean本身
+     * @param beanDefinition ：自己的定义包括需要注入的属性
+     */
+    protected void applyPropertyValues(String beanName,Object bean,BeanDefinition beanDefinition){
+        try {
+            PropertyValues propertyValues=beanDefinition.getPropertyValues();
+            for(PropertyValue pv:propertyValues.getPropertyValues()){
+                String propertyName=pv.getName();
+                Object value=pv.getValue();
+                //如果属性属于引用类型
+                if(value instanceof BeanReference){
+
+                    //当前的value属于bean的引用，包含bean的name
+                    BeanReference beanReference=(BeanReference) value;
+                    //这里的value就是获取属性的实例
+                    value=getBean(beanReference.getBeanName());
+                }
+                //调用BeanUtil进行属性填充
+                BeanUtil.setFieldValue(bean,propertyName,value);
+            }
+        } catch (Exception e){
+            throw new BeansException("Error setting property values:"+beanName);
+        }
+
+
     }
 
     public InstantiationStrategy getInstantiationStrategy(){

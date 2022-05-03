@@ -18,15 +18,25 @@ import javax.swing.*;
 public class UserService {
 
     String name;
+    UserDao userDao;
 
     public UserService(){}
+
+    public UserService(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
+    public UserService(String name, UserDao userDao) {
+        this.name = name;
+        this.userDao = userDao;
+    }
 
     public UserService(String name){
         this.name=name;
     }
 
-    public void selectUser(){
-        System.out.println("select用户信息");
+    public void selectUser(String userId){
+        System.out.println("select用户信息"+userDao.selectUserName(userId));
     }
 
     @Override

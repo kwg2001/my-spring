@@ -4,6 +4,8 @@ package com.kwg.springframework.beans.factory.config;/**
  * @Description:
  */
 
+import com.kwg.springframework.beans.PropertyValues;
+
 /**
  * @program: my-spring
  *
@@ -20,8 +22,23 @@ public class BeanDefinition {
      */
     private Class beanClass;
 
+    /**
+     * bean 的属性
+     */
+    private PropertyValues propertyValues;
+
+    /**
+     * 不管有没有propertyValues参数，都要添加一个propertyValues对象
+     * @param beanClass
+     */
     public BeanDefinition(Class beanClass){
         this.beanClass=beanClass;
+        this.propertyValues=new PropertyValues();
+    }
+
+    public BeanDefinition(Class beanClass,PropertyValues propertyValues){
+        this.beanClass=beanClass;
+        this.propertyValues=propertyValues!=null?propertyValues:new PropertyValues();
     }
 
     public Class getBeanClass(){
@@ -31,4 +48,11 @@ public class BeanDefinition {
         this.beanClass=beanClass;
     }
 
+    public PropertyValues getPropertyValues() {
+        return propertyValues;
+    }
+
+    public void setPropertyValues(PropertyValues propertyValues) {
+        this.propertyValues = propertyValues;
+    }
 }
