@@ -16,7 +16,7 @@ import java.lang.reflect.Constructor;
 /**
  * @program: my-spring
  *
- * @description:实例化bean的类
+ * @description: 实例化bean的类,BeanFactory的核心实现类
  *
  * @author: Kwg
  *
