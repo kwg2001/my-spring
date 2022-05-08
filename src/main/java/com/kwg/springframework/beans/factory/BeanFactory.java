@@ -4,6 +4,7 @@ package com.kwg.springframework.beans.factory;/**
  * @Description:
  */
 
+import com.kwg.springframework.beans.BeansException;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
 
 import java.util.Map;
@@ -34,6 +35,17 @@ public interface BeanFactory {
      * @return
      */
     public Object getBean(String name,Object... args);
+
+
+    /**
+     * 通过 类型 获取bean
+     * @param name
+     * @param requiredType
+     * @param <T>
+     * @return
+     * @throws BeansException
+     */
+    public <T> T getBean(String name,Class<T> requiredType) throws BeansException;
 
 
 }

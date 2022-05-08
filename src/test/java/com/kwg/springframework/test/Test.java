@@ -5,19 +5,20 @@ package com.kwg.springframework.test;/**
  */
 
 import cn.hutool.core.io.IoUtil;
+import com.kwg.springframework.Context.support.ClassPathXmlApplicationContext;
 import com.kwg.springframework.beans.PropertyValue;
 import com.kwg.springframework.beans.PropertyValues;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
-import com.kwg.springframework.beans.factory.BeanFactory;
 import com.kwg.springframework.beans.factory.config.BeanReference;
 import com.kwg.springframework.beans.factory.support.DefaultListableBeanFactory;
-import com.kwg.springframework.beans.factory.xml.XmlBeanDefinitionReadere;
+import com.kwg.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import com.kwg.springframework.core.io.DefaultResourceLoader;
 import com.kwg.springframework.core.io.Resource;
 import com.kwg.springframework.test.bean.LoginService;
 import com.kwg.springframework.test.bean.UserDao;
 import com.kwg.springframework.test.bean.UserService;
-import jdk.internal.util.xml.impl.Input;
+import com.kwg.springframework.test.common.MyBeanFactoryPostProcessor;
+import com.kwg.springframework.test.common.MyBeanPostProcessor;
 import org.junit.Before;
 
 
@@ -133,7 +134,7 @@ public class Test {
         DefaultListableBeanFactory beanFactory=new DefaultListableBeanFactory();
 
         //du文件
-        XmlBeanDefinitionReadere readere=new XmlBeanDefinitionReadere(beanFactory);
+        XmlBeanDefinitionReader readere=new XmlBeanDefinitionReader(beanFactory);
         readere.loaderDefinitions("classpath:spring.xml");
 
         //huiqu bean
@@ -141,6 +142,49 @@ public class Test {
         userService.selectUser("1001");
     }
 
+
+    /**
+     * 测试beanFactoryPostProcessor  BeanPostProcessor
+     */
+    @org.junit.Test
+    public void test_BeanFactoryPostProcessorAndBeanPostProcessor(){
+
+        //chushihua BeanFactory
+        DefaultListableBeanFactory beanFactory =new DefaultListableBeanFactory();
+
+        //读取配置文件  ，注册bean
+        XmlBeanDefinitionReader reader=new XmlBeanDefinitionReader(beanFactory);
+        //reader.loaderDefinitions("classpath:spring.xml");
+        reader.loaderDefinitions("classpath:springPostProcessor.xml");
+
+        //beanDefinition 加载完成，bean实例化之前，修改BeanDefinition的属性值
+/*        MyBeanFactoryPostProcessor beanFactoryPostProcessor=new MyBeanFactoryPostProcessor();
+        beanFactoryPostProcessor.postProcessBeanFactory(beanFactory);*/
+
+        //bean实例化之后，修改Bean属性
+/*        MyBeanPostProcessor beanPostProcessor=new MyBeanPostProcessor();
+        beanFactory.addBeanPostProcessor(beanPostProcessor);*/
+
+        //获取bean对象
+        UserService userService=beanFactory.getBean("userService",UserService.class);
+
+        String result=userService.selectUser("1001");
+        System.out.println("测试结果：" +result);
+
+    }
+
+
+    @org.junit.Test
+    public void test_context(){
+        //初始化beanFactory"
+        ClassPathXmlApplicationContext applicationContext=new ClassPathXmlApplicationContext("classpath:springPostProcessor.xml");
+
+        //获取bean：userService
+        UserService userService=applicationContext.getBean("userService",UserService.class);
+
+        String result=userService.selectUser("1001");
+        System.out.println("测试结果：" +result);
+    }
 
 
 

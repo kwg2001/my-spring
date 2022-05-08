@@ -30,13 +30,13 @@ import java.io.InputStream;
  *
  * @create: 2022-05-03 21:05
  **/
-public class XmlBeanDefinitionReadere extends AbstractBeanDefinitionReader {
+public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
-    public XmlBeanDefinitionReadere(BeanDefinitionRegistry registry) {
+    public XmlBeanDefinitionReader(BeanDefinitionRegistry registry) {
         super(registry);
     }
 
-    public XmlBeanDefinitionReadere(BeanDefinitionRegistry registry, ResourceLoader resourceLoader) {
+    public XmlBeanDefinitionReader(BeanDefinitionRegistry registry, ResourceLoader resourceLoader) {
         super(registry, resourceLoader);
     }
 
@@ -60,6 +60,15 @@ public class XmlBeanDefinitionReadere extends AbstractBeanDefinitionReader {
             loaderDefinitions(resource);
         }
 
+    }
+
+    @Override
+    public void loaderDefinitions(String... locations) throws BeansException {
+
+        for (String location:
+                locations) {
+            loaderDefinitions(location);
+        }
     }
 
     @Override

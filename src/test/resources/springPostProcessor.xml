@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<beans>
+<bean id="userDao" class="com.kwg.springframework.test.bean.UserDao"/>
+
+<bean id="userService" class="com.kwg.springframework.test.bean.UserService">
+    <property name="name" value="kwg_hahaha"/>
+    <property name="company" value="腾讯"/>
+    <property name="location" value="深圳"/>
+    <property name="userDao" ref="userDao"/>
+</bean>
+
+<bean class="com.kwg.springframework.test.common.MyBeanPostProcessor"/>
+<bean class="com.kwg.springframework.test.common.MyBeanFactoryPostProcessor"/>
+</beans>
+
+

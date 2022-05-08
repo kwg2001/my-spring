@@ -8,10 +8,13 @@ import cn.hutool.core.bean.BeanUtil;
 import com.kwg.springframework.beans.BeansException;
 import com.kwg.springframework.beans.PropertyValue;
 import com.kwg.springframework.beans.PropertyValues;
+import com.kwg.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
+import com.kwg.springframework.beans.factory.config.BeanPostProcessor;
 import com.kwg.springframework.beans.factory.config.BeanReference;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 
 /**
  * @program: my-spring
@@ -22,7 +25,7 @@ import java.lang.reflect.Constructor;
  *
  * @create: 2022-05-02 10:53
  **/
-public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory {
+public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
 
     /**
      * 通过Cglib方式，来创建bean实例
@@ -36,6 +39,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
              bean = crateBeanInstance(beanName,beanDefinition,args);
              //bean创建好后，给bean填充属性。
             applyPropertyValues(beanName,bean,beanDefinition);
+
+            //执行bean初始化方法，和 BeanPostProcessor 的前置后置处理方法
+            bean=initializaBean(beanName,bean,beanDefinition);
+
         } catch (Exception e) {
             throw new  BeansException("Failed to instance of bean named "+beanName,e);
         }
@@ -52,8 +59,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected Object crateBeanInstance(String beanName,BeanDefinition beanDefinition,Object[] args){
 
         Constructor constructor=null;
-        Class beanClass=beanDefinition.getBeanClass();
-        Constructor[] declaredConstructors=beanClass.getDeclaredConstructors();
+        Class<?> beanClass=beanDefinition.getBeanClass();
+        Constructor<?>[] declaredConstructors=beanClass.getDeclaredConstructors();
         for(Constructor ctor:declaredConstructors){
             if(args!=null && ctor.getParameterTypes().length==args.length ){
                 constructor=ctor;
@@ -99,6 +106,73 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         return instantiationStrategy;
     }
 
+    /**
+     * 初始化bean。。
+     *      包括 执行 BeanPostProcessor Before 处理
+     *          执行 BeanPostProcessor After 处理
+     * @param beanName
+     * @param bean
+     * @param beanDefinition
+     * @return
+     */
+    private Object initializaBean(String beanName,Object bean,BeanDefinition beanDefinition){
+
+        //BeanPostProcessor Before 处理
+        Object wrappedBean=applyBeanPostProcessorsBeforeInitalization(bean,beanName);
+
+        //执行初始化方法
+        invokeInitMethods(beanName,wrappedBean,beanDefinition);
+
+        //执行 BeanPostProcessor 后置处理
+        wrappedBean =applyBeanPostProcessorsAfterInitialization(wrappedBean,beanName);
+
+        return wrappedBean;
+
+    }
+
+    //初始化方法
+    private void invokeInitMethods(String beanName,Object wrappedBean,BeanDefinition beanDefinition){
+
+    }
+
+    /**
+     * 执行用户自己 扩展的 前置处理 。实例化bean的时候
+     * @param existingBean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
+    @Override
+    public Object applyBeanPostProcessorsBeforeInitalization(Object existingBean, String beanName) throws BeansException {
+
+        Object result=existingBean;
+        for(BeanPostProcessor processor : getBeanPostProcessors()){
+            Object current=processor.postProcessBeforeInitialization(result,beanName);
+            if(current==null) return result;
+            result=current;
+        }
+        return result;
+
+    }
+
+    /**
+     * 执行用户自定义的 后置处理。实例化bean的时候
+     * @param existingBean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
+    @Override
+    public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName) throws BeansException {
+
+        Object result = existingBean;
+        for(BeanPostProcessor processor :getBeanPostProcessors()){
+            Object current=processor.postProcessAfterInitialization(result,beanName);
+            if(current==null) return result;
+            result=current;
+        }
+        return result;
+    }
 
 
 

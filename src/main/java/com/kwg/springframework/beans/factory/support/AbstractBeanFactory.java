@@ -7,6 +7,11 @@ package com.kwg.springframework.beans.factory.support;/**
 import com.kwg.springframework.beans.factory.BeanFactory;
 import com.kwg.springframework.beans.BeansException;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
+import com.kwg.springframework.beans.factory.config.BeanPostProcessor;
+import com.kwg.springframework.beans.factory.config.ConfigurableBeanFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @program: my-spring
@@ -17,7 +22,13 @@ import com.kwg.springframework.beans.factory.config.BeanDefinition;
  *
  * @create: 2022-05-02 10:15
  **/
-public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory {
+public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements ConfigurableBeanFactory {
+
+    /**
+     * 在 createBean 中应用的 BeanPostProcessors
+     */
+    private final List<BeanPostProcessor> beanPostProcessors=new ArrayList<BeanPostProcessor>();
+
 
     /**
      *
@@ -47,6 +58,12 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
         return doGetBean(name,args);
     }
 
+    @Override
+    public <T> T getBean(String name, Class<T> requiredType) throws BeansException {
+        //强转 一下子
+        return (T) getBean(name);
+    }
+
 
     protected <T> T doGetBean(final String name,final Object[] args){
         Object bean=getSingleton(name);
@@ -64,4 +81,16 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
     public abstract BeanDefinition getBeanDefinition(String beanName) throws BeansException;
 
     protected abstract Object createBean(String beanName,BeanDefinition beanDefinition,Object[] args) throws BeansException;
+
+
+    @Override
+    public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
+        //如果存在的话，先删除在 添加
+        this.beanPostProcessors.remove(beanPostProcessor);
+        this.beanPostProcessors.add(beanPostProcessor);
+    }
+
+    public List<BeanPostProcessor> getBeanPostProcessors(){
+        return this.beanPostProcessors;
+    }
 }
