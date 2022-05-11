@@ -5,15 +5,18 @@ package com.kwg.springframework.beans.factory.support;/**
  */
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.kwg.springframework.beans.BeansException;
 import com.kwg.springframework.beans.PropertyValue;
 import com.kwg.springframework.beans.PropertyValues;
+import com.kwg.springframework.beans.factory.InitializingBean;
 import com.kwg.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
 import com.kwg.springframework.beans.factory.config.BeanPostProcessor;
 import com.kwg.springframework.beans.factory.config.BeanReference;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -59,8 +62,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected Object crateBeanInstance(String beanName,BeanDefinition beanDefinition,Object[] args){
 
         Constructor constructor=null;
-        Class<?> beanClass=beanDefinition.getBeanClass();
-        Constructor<?>[] declaredConstructors=beanClass.getDeclaredConstructors();
+        Class beanClass=beanDefinition.getBeanClass();
+        Constructor[] declaredConstructors=beanClass.getDeclaredConstructors();
         for(Constructor ctor:declaredConstructors){
             if(args!=null && ctor.getParameterTypes().length==args.length ){
                 constructor=ctor;
@@ -121,7 +124,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         Object wrappedBean=applyBeanPostProcessorsBeforeInitalization(bean,beanName);
 
         //执行初始化方法
-        invokeInitMethods(beanName,wrappedBean,beanDefinition);
+        try{
+            invokeInitMethods(beanName,wrappedBean,beanDefinition);
+        }catch (Exception e){
+            throw new BeansException("Invocation of init method of bean[" + beanName + "] failed", e);
+        }
+
 
         //执行 BeanPostProcessor 后置处理
         wrappedBean =applyBeanPostProcessorsAfterInitialization(wrappedBean,beanName);
@@ -131,7 +139,26 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     }
 
     //初始化方法
-    private void invokeInitMethods(String beanName,Object wrappedBean,BeanDefinition beanDefinition){
+    private void invokeInitMethods(String beanName,Object bean,BeanDefinition beanDefinition) throws Exception{
+
+        //是否实现接口InitializingBean
+        if(bean instanceof InitializingBean){
+            ((InitializingBean) bean).afterPropertiesSet();
+        }
+
+        //检查配置信息中的init-method属性
+        String initMethodName=beanDefinition.getInitMethodName();
+        if(StrUtil.isNotEmpty(initMethodName)){
+            //通过反射获取这个init-method 方法
+            Method initMethod =beanDefinition.getBeanClass().getMethod(initMethodName);
+
+            //如果这个init方法为空的话 报错
+            if(null==initMethod){
+                throw new BeansException("Could not find an init method named '" + initMethodName + "' on bean with name '" + beanName + "'");
+            }
+
+            initMethod.invoke(bean);
+        }
 
     }
 

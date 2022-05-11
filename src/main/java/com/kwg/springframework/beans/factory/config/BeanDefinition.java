@@ -28,6 +28,18 @@ public class BeanDefinition {
     private PropertyValues propertyValues;
 
     /**
+     * 这两个initMethodName，destoryMethodName属性
+     * 是为了在spring.xml 配置的Bean对象中的initmethod="initDataMethod" destroymethod="destroyDataMethod"
+     * 服务的
+     */
+    private String initMethodName;
+
+    private String destoryMethodName;
+
+
+
+
+    /**
      * 不管有没有propertyValues参数，都要添加一个propertyValues对象
      * @param beanClass
      */
@@ -54,5 +66,21 @@ public class BeanDefinition {
 
     public void setPropertyValues(PropertyValues propertyValues) {
         this.propertyValues = propertyValues;
+    }
+
+    public String getInitMethodName() {
+        return initMethodName;
+    }
+
+    public void setInitMethodName(String initMethodName) {
+        this.initMethodName = initMethodName;
+    }
+
+    public String getDestoryMethodName() {
+        return destoryMethodName;
+    }
+
+    public void setDestoryMethodName(String destoryMethodName) {
+        this.destoryMethodName = destoryMethodName;
     }
 }
