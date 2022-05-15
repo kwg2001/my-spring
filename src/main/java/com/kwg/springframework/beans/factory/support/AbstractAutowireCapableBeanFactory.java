@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.kwg.springframework.beans.BeansException;
 import com.kwg.springframework.beans.PropertyValue;
 import com.kwg.springframework.beans.PropertyValues;
+import com.kwg.springframework.beans.factory.DisposableBean;
 import com.kwg.springframework.beans.factory.InitializingBean;
 import com.kwg.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import com.kwg.springframework.beans.factory.config.BeanDefinition;
@@ -50,6 +51,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             throw new  BeansException("Failed to instance of bean named "+beanName,e);
         }
 
+        registerDisposableBeanIfNecessary(beanName,bean,beanDefinition);
         //bean 实例化好之后，将bean 放入单例对象的缓存中
         addSingleton(beanName,bean);
         return bean;
@@ -138,7 +140,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
     }
 
-    //初始化方法
+    /**
+     * 初始化方法，，先检查是否实现了InitializingBean 接口，如果实现了这个接口的话，就执行这个实例化方法
+     *      然后在检查是否在xml中定义了这个实例化方法，定义了就执行这个实例化方法。
+     * @param beanName
+     * @param bean
+     * @param beanDefinition
+     * @throws Exception
+     */
     private void invokeInitMethods(String beanName,Object bean,BeanDefinition beanDefinition) throws Exception{
 
         //是否实现接口InitializingBean
@@ -160,6 +169,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             initMethod.invoke(bean);
         }
 
+    }
+    protected void registerDisposableBeanIfNecessary(String beanName,Object bean, BeanDefinition beanDefinition){
+        if(bean instanceof DisposableBean || StrUtil.isNotEmpty(beanDefinition.getDestroyMethodName())){
+            registerDisposableBean(beanName,new DisposableBeanAdapter(bean,beanName,beanDefinition));
+
+        }
     }
 
     /**

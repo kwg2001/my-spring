@@ -177,8 +177,8 @@ public class Test {
     @org.junit.Test
     public void test_context(){
         //初始化beanFactory"
-        ClassPathXmlApplicationContext applicationContext=new ClassPathXmlApplicationContext("classpath:springPostProcessor.xml");
-
+        ClassPathXmlApplicationContext applicationContext=new ClassPathXmlApplicationContext("classpath:spring.xml");
+        applicationContext.registerShutdownHook();
         //获取bean：userService
         UserService userService=applicationContext.getBean("userService",UserService.class);
 

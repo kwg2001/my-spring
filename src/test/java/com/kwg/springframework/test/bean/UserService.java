@@ -4,6 +4,9 @@ package com.kwg.springframework.test.bean;/**
  * @Description:
  */
 
+import com.kwg.springframework.beans.factory.DisposableBean;
+import com.kwg.springframework.beans.factory.InitializingBean;
+
 import javax.swing.*;
 
 /**
@@ -15,7 +18,7 @@ import javax.swing.*;
  *
  * @create: 2022-05-01 23:24
  **/
-public class UserService {
+public class UserService implements InitializingBean, DisposableBean {
 
     private String name;
     private String company;
@@ -80,5 +83,16 @@ public class UserService {
 
     public void setUserDao(UserDao userDao) {
         this.userDao = userDao;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("执行：UserService.destory");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("执行：UserService.afterPropertiesSet");
+
     }
 }

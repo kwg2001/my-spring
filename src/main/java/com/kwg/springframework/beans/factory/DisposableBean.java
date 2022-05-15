@@ -7,5 +7,9 @@ package com.kwg.springframework.beans.factory;
  */
 public interface DisposableBean {
 
-    void destory() throws Exception;
+    /**
+     * 销毁bean的方法
+     * @throws Exception
+     */
+    void destroy() throws Exception;
 }

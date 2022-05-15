@@ -4,9 +4,13 @@ package com.kwg.springframework.beans.factory.support;/**
  * @Description:
  */
 
+import com.kwg.springframework.beans.BeansException;
+import com.kwg.springframework.beans.factory.DisposableBean;
 import com.kwg.springframework.beans.factory.config.SingletonBeanRegistry;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,6 +34,14 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
      */
     private final Map<String ,Object > singletonBeanMap=new ConcurrentHashMap<>();
 
+    /**
+     * 注册bean 的 销毁方法 的具体信息，
+     * 最终销毁方法 可以被AbstractApplicationContext的close方法
+     * 通过getBeanFactoey().destorySingletons()调用
+     */
+    private final Map<String, DisposableBean> disposableBeans=new HashMap<>();
+
+
     @Override
     public Object getSingleton(String name) {
         return singletonBeanMap.get(name);
@@ -40,5 +52,27 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
      */
     public void addSingleton(String name,Object singletonBeanObject){
         singletonBeanMap.put(name,singletonBeanObject);
+    }
+
+    public void registerDisposableBean(String beanName,DisposableBean bean){
+        disposableBeans.put(beanName,bean);
+    }
+
+    public void destroySingletons(){
+        Set<String> keySet=this.disposableBeans.keySet();
+        Object[] disposableBeanNames=keySet.toArray();
+
+        for(int i=disposableBeanNames.length-1;i>=0;i--){
+            Object beanName=disposableBeanNames[i];
+            //将对象销毁后，对象的销毁方法已不需要了，直接移除
+            DisposableBean disposableBean=disposableBeans.remove(beanName);
+
+            try {
+                disposableBean.destroy();
+            }catch (Exception e){
+                throw new BeansException("Destroy method on bean with name '" + beanName + "' threw an exception", e);
+            }
+
+        }
     }
 }
